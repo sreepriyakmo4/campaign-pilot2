@@ -18,6 +18,9 @@ export default function ExportPanel({ factSheet, content, review }: Props) {
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // ✅ NEW STATE
+  const [copied, setCopied] = useState(false);
+
   const handleExport = async () => {
     setLoading(true); setError(null); setDone(false);
     try {
@@ -32,6 +35,30 @@ export default function ExportPanel({ factSheet, content, review }: Props) {
       setError(e instanceof Error ? e.message : "Export failed");
     } finally {
       setLoading(false);
+    }
+  };
+
+  // ✅ NEW FUNCTION
+  const handleCopyAll = async () => {
+    try {
+      const text = `
+BLOG: ${content.blog_title}
+
+${content.blog}
+
+SOCIAL THREAD:
+${content.thread.map((p, i) => `${i + 1}. ${p}`).join("\n")}
+
+EMAIL:
+${content.email_teaser}
+      `.trim();
+
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 3000);
+    } catch (err) {
+      console.error("Clipboard failed:", err);
+      setError("Copy failed");
     }
   };
 
@@ -55,8 +82,13 @@ export default function ExportPanel({ factSheet, content, review }: Props) {
         ))}
       </div>
 
-      {error && <div className="border border-red-900/40 px-4 py-3 text-sm text-red-400">{error}</div>}
+      {error && (
+        <div className="border border-red-900/40 px-4 py-3 text-sm text-red-400">
+          {error}
+        </div>
+      )}
 
+      {/* ✅ EXPORT BUTTON */}
       <button
         onClick={handleExport}
         disabled={loading}
@@ -69,10 +101,30 @@ export default function ExportPanel({ factSheet, content, review }: Props) {
         {done ? (
           <>✓ Downloaded</>
         ) : loading ? (
-          <><div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" /> Packaging…</>
+          <>
+            <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+            Packaging…
+          </>
         ) : (
-          <><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg> Export Campaign ZIP</>
+          <>
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            Export Campaign ZIP
+          </>
         )}
+      </button>
+
+      {/* ✅ NEW COPY BUTTON */}
+      <button
+        onClick={handleCopyAll}
+        className={`w-full py-3 flex items-center justify-center gap-2 text-[10px] tracking-widest uppercase border transition-all ${
+          copied
+            ? "border-emerald-900/40 text-emerald-500"
+            : "btn-ghost"
+        }`}
+      >
+        {copied ? "✓ Copied to Clipboard" : "⊕ Copy All to Clipboard"}
       </button>
     </div>
   );

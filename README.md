@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # CampaignPilot AI
 
 > **Autonomous Multi-Agent Marketing Content Factory**
@@ -255,3 +256,6 @@ campaign-pilot/
 | JSON parse error from LLM | Add `"max_tokens": 4096` to the payload in `llm_service.py` |
 | Frontend shows blank page | Ensure backend is running on port 8000 before starting frontend |
 | `npm` not found | Install Node.js LTS from [nodejs.org](https://nodejs.org) |
+=======
+# campaign-pilot2
+>>>>>>> 90bf8508528a2e14f0c9e72d07b27d0823ca32ad
