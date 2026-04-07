@@ -1,16 +1,28 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional
 
 
 class FactSheet(BaseModel):
     product_name: Optional[str] = None
-    target_audience: list[str] = []
-    core_features: list[str] = []
-    technical_specs: list[str] = []
+    target_audience: list[str] = Field(default_factory=list)
+    core_features: list[str] = Field(default_factory=list)
+    technical_specs: list[str] = Field(default_factory=list)
     value_proposition: Optional[str] = None
-    key_messages: list[str] = []
-    ambiguous_statements: list[str] = []
+    key_messages: list[str] = Field(default_factory=list)
+    ambiguous_statements: list[str] = Field(default_factory=list)
     source_summary: str = ""
+
+    @field_validator(
+        "target_audience",
+        "core_features",
+        "technical_specs",
+        "key_messages",
+        "ambiguous_statements",
+        mode="before",
+    )
+    @classmethod
+    def none_to_list(cls, v):
+        return [] if v is None else v
 
 
 class GeneratedContent(BaseModel):

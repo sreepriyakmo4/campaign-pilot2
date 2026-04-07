@@ -14,6 +14,7 @@ import ExportPanel from "@/components/ExportPanel";
 import type { CampaignResponse, Channel, ActivityLogItem } from "@/lib/types";
 import { regenerateChannel } from "@/lib/api";
 import { saveToHistory } from "@/lib/history";
+import CampaignAssistant from "@/components/CampaignAssistant";
 
 type Tab = "blog" | "thread" | "email" | "facts" | "review" | "export";
 
@@ -95,6 +96,7 @@ export default function DashboardPage() {
     { id: "facts",  label: "Fact Sheet", icon: "◆" },
     { id: "review", label: "Review",     icon: "◎" },
     { id: "export", label: "Export",     icon: "⊞" },
+    { id: "assistant", label: "AI Assistant ✦", icon: "✦" },
   ];
 
   return (
@@ -241,7 +243,10 @@ export default function DashboardPage() {
                 {activeTab === "email"  && <EmailPreview  content={campaign.content} review={campaign.review.email_review}  onRegenerate={() => handleRegenerate("email")}  regenerating={regenerating==="email"}  />}
                 {activeTab === "facts"  && <FactSheetPanel factSheet={campaign.fact_sheet} />}
                 {activeTab === "review" && <ReviewPanel review={campaign.review} />}
+                
                 {activeTab === "export" && <ExportPanel factSheet={campaign.fact_sheet} content={campaign.content} review={campaign.review} />}
+                {activeTab === "assistant" && <CampaignAssistant campaign={campaign} />}
+                
               </div>
             )}
           </div>
