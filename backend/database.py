@@ -12,8 +12,8 @@ load_dotenv()
 
 logger = logging.getLogger(__name__)
 
-MONGODB_URL   = os.getenv("MONGODB_URL", "mongodb+srv://sreepriyakm04_db_user:s5X9PoU1ULbY0lNv@campaignpilotai.par0c0c.mongodb.net/?appName=campaignpilotai")
-DATABASE_NAME = os.getenv("MONGODB_DB_NAME", "campaignpilotai")
+MONGODB_URL   = os.getenv("MONGODB_URL")
+DATABASE_NAME = os.getenv("MONGODB_DB_NAME")
 
 client: AsyncIOMotorClient = None
 db = None
