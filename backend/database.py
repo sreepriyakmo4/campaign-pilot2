@@ -1,6 +1,6 @@
 """
-MongoDB connection using Motor (async MongoDB driver for Python).
-Motor is the async version of PyMongo — perfect for FastAPI.
+MongoDB connection using Motor (async MongoDB driver).
+Fixed for Python 3.14 + MongoDB Atlas SSL compatibility.
 """
 
 import os
@@ -12,28 +12,43 @@ load_dotenv()
 
 logger = logging.getLogger(__name__)
 
-# ---------------------------------------------------------------------------
-# Connection
-# ---------------------------------------------------------------------------
+MONGODB_URL   = os.getenv("MONGODB_URL", "mongodb+srv://sreepriyakm04_db_user:s5X9PoU1ULbY0lNv@campaignpilotai.par0c0c.mongodb.net/?appName=campaignpilotai")
+DATABASE_NAME = os.getenv("MONGODB_DB_NAME", "campaignpilotai")
 
-MONGODB_URL = os.getenv("MONGODB_URL", "mongodb://localhost:27017")
-DATABASE_NAME = os.getenv("MONGODB_DB_NAME", "campaignpilot")
-
-# Single client instance shared across the app (Motor is thread/async safe)
 client: AsyncIOMotorClient = None
 db = None
 
 
 async def connect_db():
-    """Call this once when the FastAPI app starts."""
     global client, db
-    client = AsyncIOMotorClient(MONGODB_URL)
+
+    # tlsAllowInvalidCertificates=True fixes the SSL handshake error
+    # on Python 3.14 with MongoDB Atlas
+    client = AsyncIOMotorClient(
+        MONGODB_URL,
+        tlsAllowInvalidCertificates=True,
+        serverSelectionTimeoutMS=30000,
+    )
     db = client[DATABASE_NAME]
     logger.info("Connected to MongoDB: %s / %s", MONGODB_URL, DATABASE_NAME)
 
+    await _create_indexes()
+
+
+async def _create_indexes():
+    """Create indexes on startup — safe to run every time (idempotent)."""
+    try:
+        await db["users"].create_index("googleId", unique=True)
+        await db["campaigns"].create_index("userId")
+        await db["campaigns"].create_index([("userId", 1), ("createdAt", -1)])
+        await db["conversations"].create_index("userId")
+        await db["conversations"].create_index([("userId", 1), ("updatedAt", -1)])
+        logger.info("MongoDB indexes ensured.")
+    except Exception as e:
+        logger.warning("Index creation warning (non-fatal): %s", e)
+
 
 async def close_db():
-    """Call this once when the FastAPI app shuts down."""
     global client
     if client:
         client.close()
@@ -41,13 +56,8 @@ async def close_db():
 
 
 def get_db():
-    """Return the active database instance."""
     return db
 
-
-# ---------------------------------------------------------------------------
-# Collection helpers — call these anywhere in the app
-# ---------------------------------------------------------------------------
 
 def get_users_collection():
     return db["users"]
@@ -55,3 +65,7 @@ def get_users_collection():
 
 def get_campaigns_collection():
     return db["campaigns"]
+
+
+def get_conversations_collection():
+    return db["conversations"]
